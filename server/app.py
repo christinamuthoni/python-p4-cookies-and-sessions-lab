@@ -22,13 +22,58 @@ def clear_session():
 
 @app.route('/articles')
 def index_articles():
+    articles = []
+    for article in Article.query.all():
+        article_dict = {
+            "id":  article.id,
+            "title": article.title,
+            "content": article.content,
+            "author": article.author,
+            "preview": article.preview,
+            "date": article.date
+        }   
+        articles.append(article_dict)
 
-    pass
+    if not articles:
+        # If there are no articles, return an appropriate response
+        return make_response(jsonify({"message": "No articles found"}), 404)
+            
+    response = make_response(
+        jsonify(articles),
+        200
+    )
+    return response
+    
+
 
 @app.route('/articles/<int:id>')
 def show_article(id):
+    article = Article.query.filter_by(id=id).first()
 
-    pass
+    article_dict = {
+        "id": article.id,
+        "title": article.title,
+        "content": article.content,
+        "author": article.author,
+        "preview": article.preview,
+        "date": article.date
+
+    }
+    response = make_response(jsonify(article_dict), 200)
+    #return response
+
+    session['page_views'] = session.get('page_views', 0)
+
+    session['page_views'] += 1
+    
+        
+
+    if session['page_views']  <= 3:
+        return jsonify(article_dict), 200
+        
+    else:
+        return jsonify({'message': 'Maximum pageview limit reached'}), 401
+                 
 
 if __name__ == '__main__':
     app.run(port=5555)
